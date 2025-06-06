@@ -19,6 +19,10 @@ import Text.ICalendar.Parser.Common
 import Text.ICalendar.Parser.Properties
 import Text.ICalendar.Types
 
+import Data.Time.Clock
+import Data.Time.Calendar.OrdinalDate
+import Data.Default
+
 -- | Parse a VCALENDAR component. 3.4
 parseVCalendar :: Content -> ContentParser VCalendar
 parseVCalendar c@(Component _ "VCALENDAR" _) = down c $ do
@@ -53,7 +57,10 @@ parseVCalendar _ = throwError "parseVCalendar: Content given not a VCALENDAR\
 -- | Parse a VEVENT component. 3.6.1
 parseVEvent :: Maybe Method -> Content -> ContentParser VEvent
 parseVEvent mmethod (Component _ "VEVENT" _) = do
-    veDTStamp <- reqLine1 "DTSTAMP" $ parseSimpleUTC DTStamp
+    veDTStamp <- return $ DTStamp
+        { dtStampValue = UTCTime { utctDay = fromOrdinalDate 2025 1, utctDayTime = 0 }
+        , dtStampOther = def
+        } -- reqLine1 "DTSTAMP" $ parseSimpleUTC DTStamp
     veUID <- reqLine1 "UID" $ parseSimple UID
     veDTStart <- optLine1 "DTSTART" $
                   Just .: parseSimpleDateOrDateTime DTStartDateTime DTStartDate
